@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>For My Love - Hind</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #020205; 
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .gift-overlay {
+            position: absolute;
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #020205;
+            width: 100%;
+            height: 100%;
+            transition: opacity 1s ease-in-out;
+        }
+        .gift-btn {
+            background: linear-gradient(45deg, #ff69b4, #ffb6c1);
+            color: white;
+            border: none;
+            padding: 15px 35px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(255, 105, 180, 0.6);
+            letter-spacing: 1px;
+            transition: transform 0.2s;
+        }
+        .gift-btn:active {
+            transform: scale(0.95);
+        }
+        .gift-text {
+            color: #ffb6c1;
+            margin-bottom: 20px;
+            font-size: 14px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="gift-overlay" id="giftOverlay">
+        <div class="gift-text">A Special Gift For Hind</div>
+        <button class="gift-btn" onclick="startMagic()">Open Gift 🎁</button>
+    </div>
+
+    <audio id="romanticMusic" src="https://files.catbox.moe/dl9qjg.mp3" loop></audio>
+
+    <canvas id="responsiveGiftCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('responsiveGiftCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+        let baseSize = Math.min(width, height);
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            baseSize = Math.min(width, height);
+        });
+
+        let timeline = 0;
+        let isStarted = false; // L'animation mabadya l'wst hta t-goliha start
+        let rainArray = [];
+
+        // Matrix rain animation
+        class RainDrop {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * -height;
+                this.speed = Math.random() * 2 + 3;
+                this.length = Math.random() * 20 + 15;
+                this.alpha = Math.random() * 0.25 + 0.1;
+            }
+            update() {
+                this.y += this.speed;
+                if (this.y > height) this.reset();
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.strokeStyle = `rgba(255, 182, 193, ${this.alpha})`;
+                ctx.lineWidth = 1;
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(this.x, this.y + this.length);
+                ctx.stroke();
+            }
+        }
+
+        for (let i = 0; i < 80; i++) rainArray.push(new RainDrop());
+
+        function getHeartPoint(t, size) {
+            const x = 16 * Math.pow(Math.sin(t), 3);
+            const y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
+            return { x: x * size, y: -y * size };
+        }
+
+        // Fonction li kat-khdem mli Hind t-kliki 3la Open Gift
+        function startMagic() {
+            // 1. Khdem l'musique
+            const audio = document.getElementById('romanticMusic');
+            audio.play().catch(err => console.log("Audio play blocked: ", err));
+
+            // 2. Hide overlay panel b un effet de fadeout zwin
+            const overlay = document.getElementById('giftOverlay');
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 1000);
+
+            // 3. Start animation logic
+            isStarted = true;
+        }
+
+        function drawScene() {
+            ctx.fillStyle = 'rgba(2, 2, 5, 0.16)';
+            ctx.fillRect(0, 0, width, height);
+
+            // Render Rain Backdrop dima khdam khfif
+            rainArray.forEach(drop => { drop.update(); drop.draw(); });
+
+            if (isStarted) {
+                timeline += 0.02;
+            }
+
+            const cx = width / 2;
+            const cy = height * 0.76; 
+            let heartScale = baseSize * 0.015; 
+
+            // --- 1. GLASS HEART ---
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.shadowBlur = 35;
+            ctx.shadowColor = '#ff69b4';
+            
+            ctx.beginPath();
+            ctx.fillStyle = 'rgba(255, 182, 193, 0.06)';
+            ctx.strokeStyle = '#ff69b4';
+            ctx.lineWidth = 3.5;
+            for (let t = 0; t < Math.PI * 2; t += 0.05) {
+                const p = getHeartPoint(t, heartScale);
+                if (t === 0) ctx.moveTo(p.x, p.y);
+                else ctx.lineTo(p.x, p.y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+
+            // --- 2. STEM & LEAVES (Grows only if started) ---
+            let stemGrowth = Math.min(1, timeline / 1.2);
+            let stemLength = height * 0.32; 
+            let stemTopY = (cy - (heartScale * 10)) - (stemLength * stemGrowth); 
+
+            ctx.save();
+            ctx.strokeStyle = '#1a4329';
+            ctx.lineWidth = Math.max(3, baseSize * 0.008); 
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - (heartScale * 9));
+            ctx.quadraticCurveTo(cx - (baseSize * 0.03), (cy + stemTopY) / 2, cx, stemTopY);
+            ctx.stroke();
+
+            if (timeline > 0.6) {
+                let leafProgress = Math.min(1, (timeline - 0.6) / 0.8);
+                let currentLeafSize = baseSize * 0.06 * leafProgress;
+                ctx.fillStyle = '#2d6a4f';
+                
+                // Left Leaf
+                ctx.save();
+                ctx.translate(cx - 5, cy - (stemLength * 0.45));
+                ctx.rotate(-Math.PI / 3.2);
+                ctx.beginPath();
+                ctx.moveTo(0,0);
+                ctx.bezierCurveTo(-10, -5, -20, -10, -currentLeafSize, 0);
+                ctx.bezierCurveTo(-15, 10, -5, 5, 0, 0);
+                ctx.fill();
+                ctx.restore();
+
+                // Right Leaf
+                ctx.save();
+                ctx.translate(cx + 5, cy - (stemLength * 0.75));
+                ctx.rotate(Math.PI / 3.8);
+                ctx.beginPath();
+                ctx.moveTo(0,0);
+                ctx.bezierCurveTo(10, -5, 20, -10, currentLeafSize, 0);
+                ctx.bezierCurveTo(15, 10, 5, 5, 0, 0);
+                ctx.fill();
+                ctx.restore();
+            }
+            ctx.restore();
+
+            // --- 3. THE HIGH-GRAPHIC LOTUS ---
+            if (timeline > 1.2) {
+                let bloom = Math.min(1, (timeline - 1.2) / 1.4);
+                
+                ctx.save();
+                ctx.translate(cx, stemTopY);
+                ctx.shadowBlur = 40;
+                ctx.shadowColor = 'rgba(255, 20, 147, 0.7)';
+
+                let maxLotusRadius = baseSize * 0.24; 
+
+                let petalLayers = [
+                    { count: 12, size: maxLotusRadius * bloom, widthRatio: 0.23, rot: timeline * 0.02 },
+                    { count: 10, size: (maxLotusRadius * 0.8) * bloom, widthRatio: 0.25, rot: -timeline * 0.02 },
+                    { count: 8, size: (maxLotusRadius * 0.55) * bloom, widthRatio: 0.27, rot: timeline * 0.03 }
+                ];
+
+                petalLayers.forEach((layer) => {
+                    for (let i = 0; i < layer.count; i++) {
+                        let angle = (i / layer.count) * Math.PI * 2 + layer.rot;
+                        ctx.save();
+                        ctx.rotate(angle);
+
+                        let petalGrad = ctx.createLinearGradient(0, 0, 0, -layer.size);
+                        petalGrad.addColorStop(0, '#fffefa');
+                        petalGrad.addColorStop(0.25, '#ffb6c1');
+                        petalGrad.addColorStop(0.85, '#f43f5e');
+                        petalGrad.addColorStop(1, '#be123c'); 
+
+                        ctx.beginPath();
+                        ctx.moveTo(0, 0);
+                        ctx.bezierCurveTo(-layer.size * layer.widthRatio, -layer.size * 0.4, -layer.size * layer.widthRatio * 0.7, -layer.size * 0.9, 0, -layer.size);
+                        ctx.bezierCurveTo(layer.size * layer.widthRatio * 0.7, -layer.size * 0.9, layer.size * layer.widthRatio, -layer.size * 0.4, 0, 0);
+                        ctx.fillStyle = petalGrad;
+                        ctx.fill();
+                        
+                        ctx.restore();
+                    }
+                });
+
+                // YELLOW CENTER POD
+                let coreRadius = (baseSize * 0.045) * bloom;
+                ctx.save();
+                ctx.shadowBlur = 25;
+                ctx.shadowColor = '#ffd700';
+                
+                ctx.beginPath();
+                ctx.fillStyle = '#ffcc00'; 
+                ctx.arc(0, 0, coreRadius, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.strokeStyle = '#fff275'; 
+                ctx.lineWidth = 2;
+                ctx.arc(0, 0, coreRadius * 0.6, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+                ctx.restore();
+
+                // --- 4. RESPONSIVE TEXTS ---
+                if (timeline > 2.6) {
+                    let textAlpha = Math.min(1, (timeline - 2.6) / 0.8);
+                    
+                    ctx.save();
+                    ctx.globalAlpha = textAlpha;
+                    
+                    ctx.shadowBlur = 30;
+                    ctx.shadowColor = 'rgba(255, 182, 193, 0.85)';
+                    
+                    let titleFontSize = Math.max(32, baseSize * 0.09); 
+                    ctx.font = `bold ${titleFontSize}px -apple-system, Arial, sans-serif`;
+                    ctx.fillStyle = '#ffffff'; 
+                    ctx.textAlign = "center";
+                    ctx.fillText("I Love You", cx, stemTopY - (maxLotusRadius * 0.45));
+
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = '#000000'; 
+                    let subtitleFontSize = Math.max(20, baseSize * 0.05);
+                    ctx.font = `bold ${subtitleFontSize}px -apple-system, Arial, sans-serif`;
+                    ctx.fillStyle = '#ffeb3b'; 
+                    ctx.fillText("✨ Hind 7yaty ✨", cx, stemTopY - (maxLotusRadius * 0.15));
+
+                    ctx.restore();
+                }
+            }
+
+            requestAnimationFrame(drawScene);
+        }
+
+        drawScene();
+    </script>
+</body>
+</html>
