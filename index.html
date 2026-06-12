@@ -92,10 +92,9 @@
         });
 
         let timeline = 0;
-        let isStarted = false; // L'animation mabadya l'wst hta t-goliha start
+        let isStarted = false; 
         let rainArray = [];
 
-        // Matrix rain animation
         class RainDrop {
             constructor() { this.reset(); }
             reset() {
@@ -127,20 +126,20 @@
             return { x: x * size, y: -y * size };
         }
 
-        // Fonction li kat-khdem mli Hind t-kliki 3la Open Gift
+       
         function startMagic() {
-            // 1. Khdem l'musique
+           
             const audio = document.getElementById('romanticMusic');
             audio.play().catch(err => console.log("Audio play blocked: ", err));
 
-            // 2. Hide overlay panel b un effet de fadeout zwin
+            
             const overlay = document.getElementById('giftOverlay');
             overlay.style.opacity = '0';
             setTimeout(() => {
                 overlay.style.display = 'none';
             }, 1000);
 
-            // 3. Start animation logic
+          
             isStarted = true;
         }
 
@@ -148,7 +147,6 @@
             ctx.fillStyle = 'rgba(2, 2, 5, 0.16)';
             ctx.fillRect(0, 0, width, height);
 
-            // Render Rain Backdrop dima khdam khfif
             rainArray.forEach(drop => { drop.update(); drop.draw(); });
 
             if (isStarted) {
@@ -159,7 +157,7 @@
             const cy = height * 0.76; 
             let heartScale = baseSize * 0.015; 
 
-            // --- 1. GLASS HEART ---
+           
             ctx.save();
             ctx.translate(cx, cy);
             ctx.shadowBlur = 35;
@@ -179,7 +177,7 @@
             ctx.stroke();
             ctx.restore();
 
-            // --- 2. STEM & LEAVES (Grows only if started) ---
+            
             let stemGrowth = Math.min(1, timeline / 1.2);
             let stemLength = height * 0.32; 
             let stemTopY = (cy - (heartScale * 10)) - (stemLength * stemGrowth); 
@@ -197,7 +195,7 @@
                 let currentLeafSize = baseSize * 0.06 * leafProgress;
                 ctx.fillStyle = '#2d6a4f';
                 
-                // Left Leaf
+               
                 ctx.save();
                 ctx.translate(cx - 5, cy - (stemLength * 0.45));
                 ctx.rotate(-Math.PI / 3.2);
@@ -208,7 +206,7 @@
                 ctx.fill();
                 ctx.restore();
 
-                // Right Leaf
+                
                 ctx.save();
                 ctx.translate(cx + 5, cy - (stemLength * 0.75));
                 ctx.rotate(Math.PI / 3.8);
@@ -221,7 +219,7 @@
             }
             ctx.restore();
 
-            // --- 3. THE HIGH-GRAPHIC LOTUS ---
+            
             if (timeline > 1.2) {
                 let bloom = Math.min(1, (timeline - 1.2) / 1.4);
                 
@@ -261,7 +259,7 @@
                     }
                 });
 
-                // YELLOW CENTER POD
+                
                 let coreRadius = (baseSize * 0.045) * bloom;
                 ctx.save();
                 ctx.shadowBlur = 25;
@@ -280,7 +278,7 @@
                 ctx.restore();
                 ctx.restore();
 
-                // --- 4. RESPONSIVE TEXTS ---
+            
                 if (timeline > 2.6) {
                     let textAlpha = Math.min(1, (timeline - 2.6) / 0.8);
                     
